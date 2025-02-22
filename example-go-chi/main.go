@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -31,7 +32,33 @@ func main() {
 	// 3. Demo for get article list
 	r.Post("/articles", getArticleList)
 
-	http.ListenAndServe(":3000", r)
+	// 4. Demo for handling 404 Not Found errors
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		errorResponse := map[string]string{
+			"error": "router not exist",
+			"code":  "404",
+		}
+		json.NewEncoder(w).Encode(errorResponse)
+	})
+
+	// 4.1. Demo for handling 405 Method Not Allowed errors
+	r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		errorResponse := map[string]string{
+			"error": "method not allowed xxx",
+			"code":  "405",
+		}
+		json.NewEncoder(w).Encode(errorResponse)
+	})
+
+	log.Printf("服务器正在启动，监听端口 :3000")
+	err := http.ListenAndServe(":3001", r)
+	if err != nil {
+		log.Fatalf("启动服务器失败: %v", err)
+	}
 }
 
 func getArticle(w http.ResponseWriter, r *http.Request) {
