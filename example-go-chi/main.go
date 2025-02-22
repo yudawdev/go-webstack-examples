@@ -54,8 +54,18 @@ func main() {
 		json.NewEncoder(w).Encode(errorResponse)
 	})
 
+	// 5. Demo for sub routers 
+	parent := chi.NewRouter()
+	parent.Post("/articles", getArticleList)
+	r.Mount("/api/v1", parent)
+
+	// 5.1 Demo for sub routers 2
+	r.Route("/api/v2", func(r chi.Router) {
+		r.Post("/articles", getArticleList)
+	})
+
 	log.Printf("服务器正在启动，监听端口 :3000")
-	err := http.ListenAndServe(":3001", r)
+	err := http.ListenAndServe(":3000", r)
 	if err != nil {
 		log.Fatalf("启动服务器失败: %v", err)
 	}
