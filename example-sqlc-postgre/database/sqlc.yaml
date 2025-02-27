@@ -1,0 +1,33 @@
+version: 2                         # 配置文件版本号，使用版本2的规范
+sql:
+  - schema: "./schemas"        # 数据库模式文件位置，包含表结构定义
+    queries: "./queries"           # SQL查询文件位置，包含会被解析生成Go代码的命名查询
+    engine: "postgresql"           # 指定目标数据库为PostgreSQL
+    strict_function_checks: true   # 启用严格函数检查，确保所有SQL函数在模式中有定义
+    gen:
+      go:
+        package: "sqlcdb"          # 生成的Go代码包名
+        sql_package: "pgx/v5"      # 使用pgx/v5作为数据库驱动，针对PostgreSQL优化的客户端库
+        out: "../internal/db/sqlcdb"  # 生成代码的输出路径
+        emit_interface: false      # 不生成接口定义
+        emit_exported_queries: true # 生成可导出的查询函数，使其可被其他包调用
+        emit_result_struct_pointers: true  # 查询结果返回指针而非值，减少大结构体的内存复制
+        emit_params_struct_pointers: true  # 查询参数使用指针而非值
+        emit_enum_valid_method: true       # 为枚举类型生成验证方法，用于检查值是否有效
+        emit_all_enum_values: true         # 生成枚举的所有可能值的常量列表
+        output_models_file_name: "entities.go"  # 生成的模型定义文件名
+        overrides:
+          - go_type: "github.com/shopspring/decimal.Decimal"  # 将PostgreSQL数值类型映射为高精度decimal库
+            db_type: "pg_catalog.numeric"
+          - go_type: # 将UUID类型映射为gofrs/uuid库
+              import: "github.com/gofrs/uuid/v5"
+              type: "UUID"
+            db_type: "uuid"
+          - go_type: "github.com/shopspring/decimal.Decimal"  # 可空数值类型的映射
+            db_type: "pg_catalog.numeric"
+            nullable: true
+          - go_type: # 可空UUID类型的映射
+              import: "github.com/gofrs/uuid/v5"
+              type: "NullUUID"
+            db_type: "uuid"
+            nullable: true
