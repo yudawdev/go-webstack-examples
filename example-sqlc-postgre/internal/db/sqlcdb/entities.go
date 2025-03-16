@@ -80,6 +80,64 @@ func AllOrderStatusValues() []OrderStatus {
 	}
 }
 
+type OrderType string
+
+const (
+	OrderTypeLimit  OrderType = "limit"
+	OrderTypeMarket OrderType = "market"
+)
+
+func (e *OrderType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = OrderType(s)
+	case string:
+		*e = OrderType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for OrderType: %T", src)
+	}
+	return nil
+}
+
+type NullOrderType struct {
+	OrderType OrderType
+	Valid     bool // Valid is true if OrderType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullOrderType) Scan(value interface{}) error {
+	if value == nil {
+		ns.OrderType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.OrderType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullOrderType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.OrderType), nil
+}
+
+func (e OrderType) Valid() bool {
+	switch e {
+	case OrderTypeLimit,
+		OrderTypeMarket:
+		return true
+	}
+	return false
+}
+
+func AllOrderTypeValues() []OrderType {
+	return []OrderType{
+		OrderTypeLimit,
+		OrderTypeMarket,
+	}
+}
+
 type Author struct {
 	ID   int64
 	Name string
@@ -87,12 +145,13 @@ type Author struct {
 }
 
 type Order struct {
-	ID        uuid.UUID
+	ID        string
 	AccountID uuid.UUID
 	Symbol    string
 	Quantity  decimal.Decimal
 	Fees      []byte
 	Status    OrderStatus
+	Type      OrderType
 	Version   int32
 	CreatedAt pgtype.Timestamp
 	UpdatedAt pgtype.Timestamp

@@ -19,6 +19,7 @@ INSERT INTO "orders"(id,
                      quantity,
                      fees,
                      status,
+                     type,
                      version)
 VALUES ($1,
         $2,
@@ -26,22 +27,25 @@ VALUES ($1,
         $4,
         $5,
         $6,
-        $7) ON CONFLICT (id) DO
+        $7,
+        $8) ON CONFLICT (id) DO
 UPDATE
     SET quantity = EXCLUDED.quantity,
     fees = EXCLUDED.fees,
     status = EXCLUDED.status,
+    type = EXCLUDED.type,
     version = EXCLUDED.version
 WHERE orders.version <= EXCLUDED.version
 `
 
 type UpsertOrdersParams struct {
-	ID        uuid.UUID
+	ID        string
 	AccountID uuid.UUID
 	Symbol    string
 	Quantity  decimal.Decimal
 	Fees      []byte
 	Status    OrderStatus
+	Type      OrderType
 	Version   int32
 }
 
@@ -53,6 +57,7 @@ func (q *Queries) UpsertOrders(ctx context.Context, arg *UpsertOrdersParams) err
 		arg.Quantity,
 		arg.Fees,
 		arg.Status,
+		arg.Type,
 		arg.Version,
 	)
 	return err
