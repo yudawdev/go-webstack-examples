@@ -44,6 +44,7 @@ func main() {
 	// 注册路由
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Post("/order/create", orderHandler.CreateOrderHandler)
+		r.Post("/order/list-by-status", orderHandler.ListOrdersByStatusHandler)
 	})
 
 	// 启动服务器

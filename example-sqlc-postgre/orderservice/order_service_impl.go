@@ -19,6 +19,32 @@ type OrderServiceImpl struct {
 	logger    *zerolog.Logger
 }
 
+func (o OrderServiceImpl) ListOrdersByStatus(ctx context.Context, param *FilterStatusParam) ([]*sqlcdb.Order, error) {
+	var q *FilterStatusParam
+
+	if param != nil {
+		q = param
+	} else {
+		statuses := []sqlcdb.OrderStatus{
+			sqlcdb.OrderStatusFailed, sqlcdb.OrderStatusDone,
+		}
+		q = &FilterStatusParam{Status: statuses}
+	}
+
+	statuses := make([]string, 0, len(q.Status))
+	for _, status := range q.Status {
+		statusStr := string(status)
+		statuses = append(statuses, statusStr)
+	}
+
+	r, err := o.OrderRepo.GetOrdersByStatuses(ctx, statuses)
+	if err != nil {
+		return nil, fmt.Errorf("listOrdersByStatus error: %w", err)
+	}
+
+	return r, nil
+}
+
 func (o OrderServiceImpl) CreateOrder(ctx context.Context, param *OrderCreateParam) error {
 	id := common.GenerateOrderULID()
 

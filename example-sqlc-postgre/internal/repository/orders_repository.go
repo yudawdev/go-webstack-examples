@@ -22,6 +22,16 @@ func (o *OrderRepo) Save(ctx context.Context, u *sqlcdb.UpsertOrdersParams) erro
 	return nil
 }
 
+func (o *OrderRepo) GetOrdersByStatuses(ctx context.Context, params []string) ([]*sqlcdb.Order, error) {
+	statuses, err := o.queries.GetOrdersByStatuses(ctx, params)
+	if err != nil {
+		o.logger.Error().Err(err).Msgf("get orders by status failed, params: %v", params)
+	}
+
+	return statuses, err
+
+}
+
 func NewOrderRepo(pool *pgxpool.Pool, logger *zerolog.Logger, queries *sqlcdb.Queries) *OrderRepo {
 	return &OrderRepo{
 		pool:    pool,

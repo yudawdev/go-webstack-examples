@@ -12,6 +12,44 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+const GetOrdersByStatuses = `-- name: GetOrdersByStatuses :many
+SELECT id, account_id, symbol, quantity, fees, status, type, version, created_at, updated_at
+FROM orders
+WHERE status::text = ANY($1::text[])
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetOrdersByStatuses(ctx context.Context, dollar_1 []string) ([]*Order, error) {
+	rows, err := q.db.Query(ctx, GetOrdersByStatuses, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*Order
+	for rows.Next() {
+		var i Order
+		if err := rows.Scan(
+			&i.ID,
+			&i.AccountID,
+			&i.Symbol,
+			&i.Quantity,
+			&i.Fees,
+			&i.Status,
+			&i.Type,
+			&i.Version,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const UpsertOrders = `-- name: UpsertOrders :exec
 INSERT INTO "orders"(id,
                      account_id,

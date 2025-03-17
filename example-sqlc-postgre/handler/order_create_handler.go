@@ -5,6 +5,7 @@ import (
 	"errors"
 	"example-sqlc-postgre/internal/db/sqlcdb"
 	"example-sqlc-postgre/orderservice"
+	"fmt"
 	"github.com/rs/zerolog"
 	"github.com/shopspring/decimal"
 	"net/http"
@@ -27,6 +28,10 @@ type OrderCreateRequest struct {
 	Symbol    string          `json:"symbol"`
 	Quantity  decimal.Decimal `json:"quantity"`
 	Type      string          `json:"type"`
+}
+
+type OrderListByStatusRequest struct {
+	Status []string `json:"status"`
 }
 
 type ErrorResponse struct {
@@ -84,6 +89,47 @@ func (h *OrderHandler) CreateOrderHandler(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(SuccessResponse{
 		Success: true,
 		Message: "Order created successfully",
+	})
+
+}
+
+func (h *OrderHandler) ListOrdersByStatusHandler(w http.ResponseWriter, r *http.Request) {
+
+	// Set response header
+	w.Header().Set("Content-Type", "application/json")
+
+	// Parse request
+	var req OrderListByStatusRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		handleError(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	statuses := make([]sqlcdb.OrderStatus, 0, len(req.Status))
+	for _, statusStr := range req.Status {
+		status := sqlcdb.OrderStatus(statusStr)
+		statuses = append(statuses, status)
+	}
+
+	orders, err := h.orderService.ListOrdersByStatus(r.Context(), &orderservice.FilterStatusParam{
+		Status: statuses,
+	})
+
+	fmt.Printf("order: %v", orders)
+
+	// Return success response
+	if err != nil {
+		handleError(w, "Failed to fetch orders:", http.StatusBadRequest)
+		return
+	}
+
+	// Return success response
+	w.WriteHeader(http.StatusOK) // Use 200 OK for GET requests, not 201 Created
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Orders retrieved successfully",
+		"data":    orders,
 	})
 
 }

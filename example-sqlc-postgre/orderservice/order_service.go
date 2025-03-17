@@ -8,6 +8,7 @@ import (
 
 type OrderService interface {
 	CreateOrder(ctx context.Context, param *OrderCreateParam) error
+	ListOrdersByStatus(ctx context.Context, param *FilterStatusParam) ([]*sqlcdb.Order, error)
 }
 
 type OrderCreateParam struct {
@@ -20,4 +21,8 @@ type OrderCreateParam struct {
 type Fee struct {
 	Type   string          `json:"type"`
 	Amount decimal.Decimal `json:"amount"`
+}
+
+type FilterStatusParam struct {
+	Status []sqlcdb.OrderStatus
 }

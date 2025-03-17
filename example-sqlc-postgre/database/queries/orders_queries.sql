@@ -22,3 +22,9 @@ UPDATE
     type = EXCLUDED.type,
     version = EXCLUDED.version
 WHERE orders.version <= EXCLUDED.version;
+
+-- name: GetOrdersByStatuses :many
+SELECT id, account_id, symbol, quantity, fees, status, type, version, created_at, updated_at
+FROM orders
+WHERE status::text = ANY($1::text[])
+ORDER BY created_at DESC;
