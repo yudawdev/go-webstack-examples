@@ -28,3 +28,15 @@ SELECT id, account_id, symbol, quantity, fees, status, type, version, created_at
 FROM orders
 WHERE status::text = ANY($1::text[])
 ORDER BY created_at DESC;
+
+-- name: GetOrdersByStatusesAsStrings :many
+SELECT id, account_id, symbol, quantity, fees, status, type, version, created_at, updated_at
+FROM orders
+WHERE status IN (SELECT unnest($1::text[])::order_status)
+ORDER BY created_at DESC;
+
+-- name: GetOrdersByStatusesAsStrings2 :many
+SELECT id, account_id, symbol, quantity, fees, status, type, version, created_at, updated_at
+FROM orders
+WHERE status = ANY(ARRAY(SELECT unnest($1::text[])::order_status))
+ORDER BY created_at DESC;

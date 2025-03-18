@@ -45,6 +45,8 @@ func main() {
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Post("/order/create", orderHandler.CreateOrderHandler)
 		r.Post("/order/list-by-status", orderHandler.ListOrdersByStatusHandler)
+		r.Post("/order/list-by-status-use-index", orderHandler.ListOrdersByStatusUseIndexHandler)
+		r.Post("/order/list-by-status-use-index2", orderHandler.ListOrdersByStatusUseIndex2Handler)
 	})
 
 	// 启动服务器

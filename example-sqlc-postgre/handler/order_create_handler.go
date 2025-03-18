@@ -134,6 +134,88 @@ func (h *OrderHandler) ListOrdersByStatusHandler(w http.ResponseWriter, r *http.
 
 }
 
+func (h *OrderHandler) ListOrdersByStatusUseIndexHandler(w http.ResponseWriter, r *http.Request) {
+
+	// Set response header
+	w.Header().Set("Content-Type", "application/json")
+
+	// Parse request
+	var req OrderListByStatusRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		handleError(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	statuses := make([]sqlcdb.OrderStatus, 0, len(req.Status))
+	for _, statusStr := range req.Status {
+		status := sqlcdb.OrderStatus(statusStr)
+		statuses = append(statuses, status)
+	}
+
+	orders, err := h.orderService.ListOrdersByStatus(r.Context(), &orderservice.FilterStatusParam{
+		Status: statuses,
+	})
+
+	fmt.Printf("order: %v", orders)
+
+	// Return success response
+	if err != nil {
+		handleError(w, "Failed to fetch orders:", http.StatusBadRequest)
+		return
+	}
+
+	// Return success response
+	w.WriteHeader(http.StatusOK) // Use 200 OK for GET requests, not 201 Created
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Orders retrieved successfully",
+		"data":    orders,
+	})
+
+}
+
+func (h *OrderHandler) ListOrdersByStatusUseIndex2Handler(w http.ResponseWriter, r *http.Request) {
+
+	// Set response header
+	w.Header().Set("Content-Type", "application/json")
+
+	// Parse request
+	var req OrderListByStatusRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		handleError(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	statuses := make([]sqlcdb.OrderStatus, 0, len(req.Status))
+	for _, statusStr := range req.Status {
+		status := sqlcdb.OrderStatus(statusStr)
+		statuses = append(statuses, status)
+	}
+
+	orders, err := h.orderService.ListOrdersByStatus(r.Context(), &orderservice.FilterStatusParam{
+		Status: statuses,
+	})
+
+	fmt.Printf("order: %v", orders)
+
+	// Return success response
+	if err != nil {
+		handleError(w, "Failed to fetch orders:", http.StatusBadRequest)
+		return
+	}
+
+	// Return success response
+	w.WriteHeader(http.StatusOK) // Use 200 OK for GET requests, not 201 Created
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Orders retrieved successfully",
+		"data":    orders,
+	})
+
+}
+
 // validateOrderRequest performs basic validation on the request
 func validateOrderRequest(req *OrderCreateRequest) error {
 	if req.AccountId == "" {

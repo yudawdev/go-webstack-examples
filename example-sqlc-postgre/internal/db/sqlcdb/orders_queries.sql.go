@@ -50,6 +50,82 @@ func (q *Queries) GetOrdersByStatuses(ctx context.Context, dollar_1 []string) ([
 	return items, nil
 }
 
+const GetOrdersByStatusesAsStrings = `-- name: GetOrdersByStatusesAsStrings :many
+SELECT id, account_id, symbol, quantity, fees, status, type, version, created_at, updated_at
+FROM orders
+WHERE status IN (SELECT unnest($1::text[])::order_status)
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetOrdersByStatusesAsStrings(ctx context.Context, dollar_1 []string) ([]*Order, error) {
+	rows, err := q.db.Query(ctx, GetOrdersByStatusesAsStrings, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*Order
+	for rows.Next() {
+		var i Order
+		if err := rows.Scan(
+			&i.ID,
+			&i.AccountID,
+			&i.Symbol,
+			&i.Quantity,
+			&i.Fees,
+			&i.Status,
+			&i.Type,
+			&i.Version,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const GetOrdersByStatusesAsStrings2 = `-- name: GetOrdersByStatusesAsStrings2 :many
+SELECT id, account_id, symbol, quantity, fees, status, type, version, created_at, updated_at
+FROM orders
+WHERE status = ANY(ARRAY(SELECT unnest($1::text[])::order_status))
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetOrdersByStatusesAsStrings2(ctx context.Context, dollar_1 []string) ([]*Order, error) {
+	rows, err := q.db.Query(ctx, GetOrdersByStatusesAsStrings2, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*Order
+	for rows.Next() {
+		var i Order
+		if err := rows.Scan(
+			&i.ID,
+			&i.AccountID,
+			&i.Symbol,
+			&i.Quantity,
+			&i.Fees,
+			&i.Status,
+			&i.Type,
+			&i.Version,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const UpsertOrders = `-- name: UpsertOrders :exec
 INSERT INTO "orders"(id,
                      account_id,

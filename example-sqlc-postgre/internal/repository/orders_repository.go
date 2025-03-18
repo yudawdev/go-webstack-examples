@@ -32,6 +32,26 @@ func (o *OrderRepo) GetOrdersByStatuses(ctx context.Context, params []string) ([
 
 }
 
+func (o *OrderRepo) GetOrdersByStatusesUseIndex(ctx context.Context, params []string) ([]*sqlcdb.Order, error) {
+	statuses, err := o.queries.GetOrdersByStatusesAsStrings(ctx, params)
+	if err != nil {
+		o.logger.Error().Err(err).Msgf("get orders by status failed, params: %v", params)
+	}
+
+	return statuses, err
+
+}
+
+func (o *OrderRepo) GetOrdersByStatusesUseIndex2(ctx context.Context, params []string) ([]*sqlcdb.Order, error) {
+	statuses, err := o.queries.GetOrdersByStatusesAsStrings2(ctx, params)
+	if err != nil {
+		o.logger.Error().Err(err).Msgf("get orders by status failed, params: %v", params)
+	}
+
+	return statuses, err
+
+}
+
 func NewOrderRepo(pool *pgxpool.Pool, logger *zerolog.Logger, queries *sqlcdb.Queries) *OrderRepo {
 	return &OrderRepo{
 		pool:    pool,

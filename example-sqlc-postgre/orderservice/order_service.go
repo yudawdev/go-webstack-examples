@@ -9,6 +9,8 @@ import (
 type OrderService interface {
 	CreateOrder(ctx context.Context, param *OrderCreateParam) error
 	ListOrdersByStatus(ctx context.Context, param *FilterStatusParam) ([]*sqlcdb.Order, error)
+	ListOrdersByStatusUserIndex(ctx context.Context, param *FilterStatusParam) ([]*sqlcdb.Order, error)
+	ListOrdersByStatusUserIndex2(ctx context.Context, param *FilterStatusParam) ([]*sqlcdb.Order, error)
 }
 
 type OrderCreateParam struct {
